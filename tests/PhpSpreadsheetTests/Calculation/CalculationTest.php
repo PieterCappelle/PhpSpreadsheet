@@ -5,6 +5,7 @@ namespace PhpOffice\PhpSpreadsheetTests\Calculation;
 use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PHPUnit\Framework\TestCase;
 
 class CalculationTest extends TestCase
@@ -186,6 +187,30 @@ class CalculationTest extends TestCase
         $cell3->setValue('=SUM(INDIRECT("A"&ROW()),INDIRECT("B"&ROW()),INDIRECT("C"&ROW()))');
 
         self::assertEquals('9', $cell3->getCalculatedValue());
+    }
+
+    public function testCellWithFormulaSumRangeIndirectDifferentSheets(): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $workSheet = $spreadsheet->getActiveSheet();
+        $cellA1 = $workSheet->getCell('A1');
+        $cellA1->setValue('A1');
+        $cellA2 = $workSheet->getCell('A2');
+        $cellA2->setValue('A3');
+        $cellA3 = $workSheet->getCell('A3');
+        $cellA3->setValue('=SUM(INDIRECT("\'OTHER SHEET\'!"&A1):INDIRECT("\'OTHER SHEET\'!"&A2)))');
+
+        $workSheetOther = new Worksheet();
+        $workSheetOther->setTitle('OTHER SHEET');
+        $cellB1 = $workSheetOther->getCell('A1');
+        $cellB1->setValue('100');
+        $cellB2 = $workSheetOther->getCell('A2');
+        $cellB2->setValue('100');
+        $cellB3 = $workSheetOther->getCell('A3');
+        $cellB3->setValue('100');
+        $spreadsheet->addSheet($workSheetOther);
+
+        self::assertEquals('300', $cellA3->getCalculatedValue());
     }
 
     public function testBranchPruningFormulaParsingSimpleCase(): void

@@ -4359,6 +4359,13 @@ class Calculation
                     return $this->raiseFormulaError('Internal error - Operand value missing from stack');
                 }
 
+                echo '<pre>';
+                var_dump($operand1Data);
+                echo '</pre>';
+                echo '<pre>';
+                var_dump($token);
+                echo '</pre>';
+
                 $operand1 = self::dataTestReference($operand1Data);
                 $operand2 = self::dataTestReference($operand2Data);
 
@@ -4397,9 +4404,15 @@ class Calculation
                             $sheet2 = $sheet1;
                         }
 
+                        // $sheet1 = 'OTHER SHEET';
+                        // $sheet2 = 'OTHER SHEET';
+
                         if ($sheet1 == $sheet2) {
                             if ($operand1Data['reference'] === null) {
-                                if ((trim($operand1Data['value']) != '') && (is_numeric($operand1Data['value']))) {
+                                if (is_array($operand1Data)) {
+                                    $p = $operand1Data;
+                                    $operand1Data['reference'] = array_key_first(array_shift($p['value'])).array_key_first($operand1Data['value']);
+                                } elseif ((trim($operand1Data['value']) != '') && (is_numeric($operand1Data['value']))) {
                                     $operand1Data['reference'] = $pCell->getColumn() . $operand1Data['value'];
                                 } elseif (trim($operand1Data['reference']) == '') {
                                     $operand1Data['reference'] = $pCell->getCoordinate();
@@ -4408,7 +4421,10 @@ class Calculation
                                 }
                             }
                             if ($operand2Data['reference'] === null) {
-                                if ((trim($operand2Data['value']) != '') && (is_numeric($operand2Data['value']))) {
+                                if (is_array($operand2Data)) {
+                                    $p = $operand2Data;
+                                    $operand2Data['reference'] = array_key_first(array_shift($p['value'])).array_key_first($operand2Data['value']);
+                                } elseif ((trim($operand2Data['value']) != '') && (is_numeric($operand2Data['value']))) {
                                     $operand2Data['reference'] = $pCell->getColumn() . $operand2Data['value'];
                                 } elseif (trim($operand2Data['reference']) == '') {
                                     $operand2Data['reference'] = $pCell->getCoordinate();
@@ -4481,6 +4497,14 @@ class Calculation
                         if (is_bool($operand2)) {
                             $operand2 = ($operand2) ? self::$localeBoolean['TRUE'] : self::$localeBoolean['FALSE'];
                         }
+
+                        echo '<pre>';
+                        var_dump($operand1);
+                        echo '</pre>';
+                        echo '<pre>';
+                        var_dump($operand2);
+                        echo '</pre>';
+
                         if ((is_array($operand1)) || (is_array($operand2))) {
                             //    Ensure that both operands are arrays/matrices
                             self::checkMatrixOperands($operand1, $operand2, 2);
@@ -4499,6 +4523,11 @@ class Calculation
                             $result = self::FORMULA_STRING_QUOTE . str_replace('""', self::FORMULA_STRING_QUOTE, self::unwrapResult($operand1) . self::unwrapResult($operand2)) . self::FORMULA_STRING_QUOTE;
                         }
                         $this->debugLog->writeDebugLog('Evaluation Result is ', $this->showTypeDetails($result));
+
+                        echo '<pre>';
+                        var_dump($result);
+                        echo '</pre>';
+
                         $stack->push('Value', $result);
 
                         if (isset($storeKey)) {
